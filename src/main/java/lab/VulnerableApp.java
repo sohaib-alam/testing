@@ -1,5 +1,9 @@
 package lab;
 
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -12,9 +16,14 @@ public class VulnerableApp {
     private static final Logger LOG = LogManager.getLogger(VulnerableApp.class);
 
     public static void main(String[] args) throws Exception {
-        if (args.length != 4) {
-            System.err.println("Usage: VulnerableApp <jdbc-url> <db-user> <db-password> <username>");
+        if (args.length != 4 && args.length != 6) {
+            System.err.println("Usage: VulnerableApp <jdbc-url> <db-user> <db-password> <username> [shell-command relative-file]");
             return;
+        }
+        // Optional scanner inputs; these paths do not need a database connection.
+        if (args.length == 6) {
+            runCommand(args[4]);
+            readReport(args[5]);
         }
         String username = args[3]; // Externally controlled input.
         LOG.error("Looking up user: {}", username); // Untrusted text reaches old Log4j.
@@ -33,4 +42,20 @@ public class VulnerableApp {
             }
         }
     }
+
+    public static void runCommand(String command) throws Exception {
+        // CWE-78: untrusted input is interpreted by a shell (Linux/macOS fixture).
+        Process process = new ProcessBuilder("sh", "-c", command)
+                .inheritIO()
+                .start();
+        process.waitFor();
+    }
+
+    public static void readReport(String filename) throws Exception {
+        // CWE-22: no traversal validation or enforcement of the base directory.
+        Path report = Paths.get("reports").resolve(filename);
+        byte[] contents = Files.readAllBytes(report);
+        System.out.println(new String(contents, StandardCharsets.UTF_8));
+    }
+
 }
