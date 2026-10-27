@@ -7,7 +7,7 @@ import java.sql.Statement;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-/** Intentionally insecure scanner fixture. Use only in an isolated test lab. */
+/** Intentionally insecure scanner fixture. Use only in an isolated test labs. */
 public class VulnerableApp {
     private static final Logger LOG = LogManager.getLogger(VulnerableApp.class);
 
